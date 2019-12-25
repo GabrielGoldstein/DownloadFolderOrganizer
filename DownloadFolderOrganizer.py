@@ -39,6 +39,15 @@ FILE_FORMATS = {
 #The target directory where you want to organize the files. Passed in the 1st argument
 TARGET_DIRECTORY = sys.argv[1]
 
+#Function that will try to move the currently file into its intended folder based on the mapping
+def move_file(original_path, dir_path, name, title, suffix):
+    #If an error occurs, add datetime to the end of the file name 
+    #   EX: testDocument.txt -> testDocument2019-12-25_10:55:32.txt
+    try:
+        original_path.rename(dir_path.joinpath(name))
+    except WindowsError:
+        original_path.rename(dir_path.joinpath(title + datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + suffix))
+
 #Function that will organize the files in the Target Directory
 def organize_junk(path):
     for entry in os.scandir(path):
@@ -60,15 +69,14 @@ def organize_junk(path):
             directory_path = Path(path + "/" + FILE_FORMATS[file_format]) #Creates a full path for the directory
             directory_path.mkdir(exist_ok = True)   #Creates a directory if it does not already exist
 
-            #Tries to move the file but if it already exists it appends the DateTime to the end
-            try:
-                file_path.rename(directory_path.joinpath(file_name))
-            except WindowsError:
-                file_path.rename(directory_path.joinpath(file_name_title + datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + file_format))
+            #Tries to move the file
+            move_file(file_path, directory_path, file_name, file_name_title, file_format)
         else:
             misc_path = Path(path + "/Misc/")
             misc_path.mkdir(exist_ok = True)
-            file_path.rename(misc_path.joinpath(file_name))
+
+            #Tries to move the file
+            move_file(file_path, misc_path, file_name, file_name_title, file_format)             
 
 #Main Function that is called on file execution (File Entry Point)
 if __name__ == "__main__":
